@@ -36,3 +36,8 @@ Thumbs.db
 # Temporary files
 SCRATCHPAD.md
 scratchpad/
+
+# Hub-synced local files (kept on disk, not published)
+.cursor/
+.hub-manifest.json
+CLAUDE.md
