@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Author: Pandiyaraj Karuppasamy
+  Date: Oct-14-2026
+
+  A 2x2 grid of app tiles: three stay as they were, the top right one has been repainted amber
+  and given a star. Everything sits inside the 66dp adaptive safe zone (21 to 87 of 108).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Top left, bottom left, bottom right: the untouched apps. -->
+    <path
+        android:fillColor="#F2FFFFFF"
+        android:pathData="M36,31h10a5,5 0 0 1 5,5v10a5,5 0 0 1 -5,5h-10a5,5 0 0 1 -5,-5v-10a5,5 0 0 1 5,-5z" />
+    <path
+        android:fillColor="#F2FFFFFF"
+        android:pathData="M36,57h10a5,5 0 0 1 5,5v10a5,5 0 0 1 -5,5h-10a5,5 0 0 1 -5,-5v-10a5,5 0 0 1 5,-5z" />
+    <path
+        android:fillColor="#F2FFFFFF"
+        android:pathData="M62,57h10a5,5 0 0 1 5,5v10a5,5 0 0 1 -5,5h-10a5,5 0 0 1 -5,-5v-10a5,5 0 0 1 5,-5z" />
+    <!-- Top right: the one that was customised. -->
+    <path
+        android:fillColor="#FFFFC107"
+        android:pathData="M62,31h10a5,5 0 0 1 5,5v10a5,5 0 0 1 -5,5h-10a5,5 0 0 1 -5,-5v-10a5,5 0 0 1 5,-5z" />
+    <path
+        android:fillColor="#FF3949AB"
+        android:pathData="M67,34L68.76,38.57L73.66,38.84L69.85,41.93L71.11,46.66L67,44L62.89,46.66L64.15,41.93L60.34,38.84L65.24,38.57Z" />
+</vector>
