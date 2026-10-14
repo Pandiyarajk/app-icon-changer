@@ -23,6 +23,8 @@ data class HistoryEntry(
     val packageName: String,
     val label: String,
     val spec: IconSpec,
+    /** The app's own label at the time of the first change, restored with the icon. */
+    val originalLabel: String = "",
 )
 
 private val Context.historyDataStore: DataStore<Preferences> by preferencesDataStore("history")
@@ -41,6 +43,13 @@ class HistoryStore(private val context: Context) {
             val current = decode(prefs[key]).toMutableMap()
             current[entry.packageName] = entry
             prefs[key] = encode(current)
+        }
+    }
+
+    suspend fun remove(packageName: String) {
+        context.historyDataStore.edit { prefs ->
+            val current = decode(prefs[key]).toMutableMap()
+            if (current.remove(packageName) != null) prefs[key] = encode(current)
         }
     }
 

@@ -9,11 +9,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.viewModelScope
 import com.pandiyarajk.iconchanger.apps.AppInfo
 import com.pandiyarajk.iconchanger.apps.AppRepository
 import com.pandiyarajk.iconchanger.data.HistoryEntry
 import com.pandiyarajk.iconchanger.data.HistoryStore
+import com.pandiyarajk.iconchanger.icons.IconRenderer
 import com.pandiyarajk.iconchanger.shortcut.ShortcutCreator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +42,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
 
     private val photoDir = File(application.filesDir, "photos")
+    private val originalDir = File(application.filesDir, "originals")
 
     init {
         refresh()
@@ -54,7 +57,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val removed = store.prune(list.map { it.packageName }.toSet())
             ShortcutCreator.disable(getApplication(), removed.map { it.packageName })
             withContext(Dispatchers.IO) {
-                removed.forEach { deletePhotos(it.packageName) }
+                removed.forEach {
+                    deletePhotos(it.packageName)
+                    File(originalDir, "${it.packageName}.png").delete()
+                }
             }
             _loading.value = false
         }
@@ -62,6 +68,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun record(entry: HistoryEntry) {
         viewModelScope.launch { store.put(entry) }
+    }
+
+    /** Forgets a customisation (after a restore) and drops its picked photo. */
+    fun forget(packageName: String) {
+        viewModelScope.launch {
+            store.remove(packageName)
+            withContext(Dispatchers.IO) { deletePhotos(packageName) }
+        }
+    }
+
+    /**
+     * Saves the app's current icon the first time it is seen and returns the file path. Taken
+     * before any change, so it is the real original; once saved it is never overwritten.
+     */
+    suspend fun ensureOriginal(app: AppInfo): String? = withContext(Dispatchers.IO) {
+        try {
+            val file = File(originalDir, "${app.packageName}.png")
+            if (!file.exists()) {
+                originalDir.mkdirs()
+                val bitmap = app.icon.toBitmap(IconRenderer.SHORTCUT_SIZE_PX, IconRenderer.SHORTCUT_SIZE_PX)
+                file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            }
+            file.absolutePath
+        } catch (e: Exception) {
+            null
+        }
     }
 
     /**

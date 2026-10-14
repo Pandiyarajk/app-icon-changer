@@ -46,6 +46,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -85,7 +86,9 @@ fun IconEditorScreen(
     app: AppInfo,
     initial: HistoryEntry?,
     importPhoto: suspend (Uri) -> String?,
+    loadOriginal: suspend () -> String?,
     onApplied: (HistoryEntry) -> Unit,
+    onRestored: () -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -102,8 +105,15 @@ fun IconEditorScreen(
     val photo = remember(spec.photoPath) {
         spec.photoPath?.let { BitmapFactory.decodeFile(it)?.asImageBitmap() }
     }
-    val preview = remember(spec, photo, glyphPainter) {
-        IconRenderer.render(spec, glyphPainter, photo, PREVIEW_PX)
+    // Saved the first time the app is opened here, before any change, so it is the real original.
+    var originalPath by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(app.packageName) { originalPath = loadOriginal() }
+    val original = remember(originalPath) {
+        originalPath?.let { BitmapFactory.decodeFile(it)?.asImageBitmap() }
+    }
+    val artwork = if (spec.source == IconSource.ORIGINAL) original else photo
+    val preview = remember(spec, artwork, glyphPainter) {
+        IconRenderer.render(spec, glyphPainter, artwork, PREVIEW_PX)
     }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -192,12 +202,18 @@ fun IconEditorScreen(
                             },
                             label = { Text("My photo") },
                         )
+                        FilterChip(
+                            selected = spec.source == IconSource.ORIGINAL,
+                            onClick = { spec = spec.copy(source = IconSource.ORIGINAL) },
+                            enabled = original != null,
+                            label = { Text("Original") },
+                        )
                     }
                     if (spec.source == IconSource.PHOTO) {
                         OutlinedButton(onClick = {
                             picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                         }) { Text("Choose another photo") }
-                    } else {
+                    } else if (spec.source == IconSource.LIBRARY) {
                         LibraryControls(
                             spec = spec,
                             onSpec = { spec = it },
@@ -205,7 +221,7 @@ fun IconEditorScreen(
                             onHex = { hex = it },
                         )
                     }
-                    ShapeControls(spec) { spec = it }
+                    if (spec.source != IconSource.ORIGINAL) ShapeControls(spec) { spec = it }
                     if (spec.source == IconSource.LIBRARY) {
                         OutlinedTextField(
                             value = query,
@@ -252,14 +268,22 @@ fun IconEditorScreen(
                 }
             }
             item(span = { GridItemSpan(maxLineSpan) }) {
+                Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = {
-                        val bitmap = IconRenderer.render(spec, glyphPainter, photo).asAndroidBitmap()
+                        val bitmap = IconRenderer.render(spec, glyphPainter, artwork).asAndroidBitmap()
                         val name = label.trim().ifEmpty { app.label }
                         val outcome = ShortcutCreator.apply(
-                            context, app.packageName, app.className, name, bitmap, spec.adaptive,
+                            context, app.packageName, app.className, name, bitmap,
+                            spec.adaptive && spec.source != IconSource.ORIGINAL,
                         )
-                        onApplied(HistoryEntry(app.packageName, name, spec))
+                        // The first label ever recorded is the app's own, kept for restore.
+                        onApplied(
+                            HistoryEntry(
+                                app.packageName, name, spec,
+                                originalLabel = initial?.originalLabel?.ifEmpty { null } ?: app.label,
+                            ),
+                        )
                         val message = when (outcome) {
                             ApplyOutcome.PIN_REQUESTED -> "Confirm adding the shortcut to your home screen"
                             ApplyOutcome.UPDATED -> "Shortcut updated"
@@ -267,9 +291,34 @@ fun IconEditorScreen(
                         }
                         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
                     },
-                    enabled = spec.source == IconSource.LIBRARY || photo != null,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    enabled = when (spec.source) {
+                        IconSource.LIBRARY -> true
+                        IconSource.PHOTO -> photo != null
+                        IconSource.ORIGINAL -> original != null
+                    },
+                    modifier = Modifier.fillMaxWidth(),
                 ) { Text("Add to home screen") }
+                if (initial != null && original != null) {
+                    OutlinedButton(
+                        onClick = {
+                            val restoredLabel = initial.originalLabel.ifEmpty { app.label }
+                            val updated = ShortcutCreator.restore(
+                                context, app.packageName, app.className, restoredLabel,
+                                original.asAndroidBitmap(),
+                            )
+                            onRestored()
+                            val message = if (updated) {
+                                "Restored. Remove the shortcut from your home screen to drop it, " +
+                                    "the app drawer icon was never changed."
+                            } else {
+                                "Customisation cleared. No shortcut was on your home screen."
+                            }
+                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Restore original") }
+                }
+                }
             }
         }
     }

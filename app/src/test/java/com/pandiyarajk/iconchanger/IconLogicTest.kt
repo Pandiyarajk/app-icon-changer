@@ -4,10 +4,12 @@
  */
 package com.pandiyarajk.iconchanger
 
+import com.pandiyarajk.iconchanger.data.HistoryEntry
 import com.pandiyarajk.iconchanger.icons.IconCatalog
 import com.pandiyarajk.iconchanger.icons.IconCategory
 import com.pandiyarajk.iconchanger.icons.IconGeometry
 import com.pandiyarajk.iconchanger.icons.IconShape
+import com.pandiyarajk.iconchanger.icons.IconSource
 import com.pandiyarajk.iconchanger.icons.IconSpec
 import com.pandiyarajk.iconchanger.shortcut.ShortcutIds
 import kotlinx.serialization.encodeToString
@@ -77,5 +79,17 @@ class IconLogicTest {
         val spec = IconSpec(glyphId = "home", background = 0xFFE53935L, adaptive = true, zoom = 2.5f)
         val json = Json.encodeToString(spec)
         assertEquals(spec, Json.decodeFromString<IconSpec>(json))
+    }
+
+    @Test
+    fun historyKeepsOriginalLabelAndReadsOlderEntries() {
+        val entry = HistoryEntry("a.b", "Mine", IconSpec(source = IconSource.ORIGINAL), originalLabel = "Real")
+        val back = Json.decodeFromString<HistoryEntry>(Json.encodeToString(entry))
+        assertEquals("Real", back.originalLabel)
+        assertEquals(IconSource.ORIGINAL, back.spec.source)
+        // An entry saved before originalLabel existed has no such key and must still load.
+        val old = Json { ignoreUnknownKeys = true }
+            .decodeFromString<HistoryEntry>("""{"packageName":"a.b","label":"x","spec":{}}""")
+        assertEquals("", old.originalLabel)
     }
 }

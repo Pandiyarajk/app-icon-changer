@@ -75,6 +75,35 @@ object ShortcutCreator {
         }
     }
 
+    /**
+     * Puts an already pinned shortcut back to the original icon and label. Returns false when
+     * none is pinned, in which case there is nothing on the home screen to restore.
+     */
+    fun restore(
+        context: Context,
+        packageName: String,
+        className: String,
+        label: String,
+        original: Bitmap,
+    ): Boolean {
+        val id = ShortcutIds.forTarget(packageName)
+        val pinned = ShortcutManagerCompat
+            .getShortcuts(context, ShortcutManagerCompat.FLAG_MATCH_PINNED)
+            .any { it.id == id }
+        if (!pinned) return false
+        val launch = Intent(Intent.ACTION_MAIN)
+            .addCategory(Intent.CATEGORY_LAUNCHER)
+            .setComponent(ComponentName(packageName, className))
+        val info = ShortcutInfoCompat.Builder(context, id)
+            .setShortLabel(label)
+            .setLongLabel(label)
+            .setIcon(IconCompat.createWithBitmap(original))
+            .setIntent(launch)
+            .build()
+        ShortcutManagerCompat.updateShortcuts(context, listOf(info))
+        return true
+    }
+
     /** Disables the pinned shortcuts of apps that are gone, so they stop launching nothing. */
     fun disable(context: Context, packageNames: Collection<String>) {
         if (packageNames.isEmpty()) return

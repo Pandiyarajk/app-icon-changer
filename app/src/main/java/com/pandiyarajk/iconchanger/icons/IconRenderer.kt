@@ -36,7 +36,7 @@ object IconRenderer {
 
     /**
      * Renders [spec] at [sizePx]. [glyph] is the library artwork (null for a photo icon) and
-     * [photo] the decoded picture (null for a library icon).
+     * [photo] the decoded picture, or the saved original icon for [IconSource.ORIGINAL] (null for a library icon).
      */
     fun render(
         spec: IconSpec,
@@ -55,7 +55,7 @@ object IconRenderer {
     private fun DrawScope.drawIcon(spec: IconSpec, glyph: Painter?, photo: ImageBitmap?) {
         val side = size.minDimension
         // The launcher masks an adaptive icon itself, so ours must be full-bleed.
-        val shape = if (spec.adaptive) IconShape.SQUARE else spec.shape
+        val shape = if (spec.adaptive || spec.source == IconSource.ORIGINAL) IconShape.SQUARE else spec.shape
         val radius = IconGeometry.cornerFraction(shape) * side
         val outline = Path().apply {
             addRoundRect(RoundRect(0f, 0f, side, side, CornerRadius(radius, radius)))
@@ -63,6 +63,9 @@ object IconRenderer {
         clipPath(outline) {
             if (spec.source == IconSource.PHOTO && photo != null) {
                 drawPhoto(spec, photo, side)
+            } else if (spec.source == IconSource.ORIGINAL && photo != null) {
+                // The saved original is already shaped by the launcher, so it is drawn as is.
+                drawImage(photo, dstSize = IntSize(side.toInt(), side.toInt()))
             } else {
                 drawRect(Color(spec.background.toInt()))
                 if (glyph != null) drawGlyph(spec, glyph, side)

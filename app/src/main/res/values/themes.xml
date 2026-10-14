@@ -5,5 +5,4 @@
 -->
 <resources>
     <style name="Theme.IconChanger" parent="android:Theme.Material.Light.NoActionBar" />
-    <color name="ic_launcher_background">#3949AB</color>
 </resources>

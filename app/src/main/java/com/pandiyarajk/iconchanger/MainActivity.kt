@@ -65,7 +65,12 @@ private fun Root(viewModel: MainViewModel) {
             app = app,
             initial = history[app.packageName],
             importPhoto = { uri -> viewModel.importPhoto(uri, app.packageName) },
+            loadOriginal = { viewModel.ensureOriginal(app) },
             onApplied = viewModel::record,
+            onRestored = {
+                viewModel.forget(app.packageName)
+                selected = null
+            },
             onBack = { selected = null },
         )
     }

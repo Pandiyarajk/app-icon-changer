@@ -9,8 +9,11 @@ import kotlinx.serialization.Serializable
 /** Outline applied to a plain (non-adaptive) icon. Adaptive icons are masked by the launcher. */
 enum class IconShape { CIRCLE, ROUNDED, SQUARE }
 
-/** Where the icon artwork comes from. */
-enum class IconSource { LIBRARY, PHOTO }
+/**
+ * Where the icon artwork comes from. [ORIGINAL] is the app's own icon, saved at first sight so it
+ * can be restored later.
+ */
+enum class IconSource { LIBRARY, PHOTO, ORIGINAL }
 
 /**
  * Everything needed to redraw an icon, small enough to store in history.
