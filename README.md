@@ -4,6 +4,14 @@
 
 # Icon Changer
 
+> **Disclaimer.** This app is provided **AS IS**, without warranty of any kind, express or
+> implied. Use it entirely at your own risk. The author accepts no liability for data loss,
+> lost shortcuts or home-screen layouts, device problems, business interruption, or any
+> consequential damage. You are responsible for checking what you change on your phone and
+> for being allowed to change it. It is not a parental-control or security product and is not
+> certified for any regulated or safety-critical use. The [LICENSE](LICENSE) (MIT) is the
+> governing text and prevails wherever this summary differs from it.
+
 An Android app that lists the apps on your phone and lets you give any of them a new icon
 and name on your home screen. Pick one of about 110 built-in icons, or use your own photo,
 and the original is always kept so you can restore it later.
@@ -24,9 +32,10 @@ pinned home-screen shortcut** that opens the app with the icon and name you chos
 Bright, familiar icons such as YouTube and Instagram pull young children in. On a phone the
 family shares, you can make those apps less eye-catching, or easier for a child to recognise:
 
-- **Tone them down:** give YouTube and Instagram a plain grey tile with a neutral glyph (a
-  briefcase, a lock) and a dull name such as "Work", so they stop standing out on the home
-  screen.
+- **Tone them down:** give YouTube and Instagram a plain grey tile (type `9E9E9E` in the
+  custom colour field, or pick the blue-grey swatch) with a neutral glyph such as the
+  briefcase or the lock, and a dull name such as "Work". Then remove the original icon from
+  the home screen (long-press it, Remove), so only the toned-down one is left there.
 - **Make kids' apps easy to find:** give a learning or drawing app a bright colour and a
   friendly icon (a star, a palette, a book), and a name your child can read.
 - **Undo any time:** open the app again and tap **Restore original** to go back to the real
