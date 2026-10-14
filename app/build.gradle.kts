@@ -81,6 +81,23 @@ kotlin {
     }
 }
 
+// Name the APK after the applicationId (com.pandiyarajk.iconchanger.apk) instead of
+// app-release.apk, so collected builds are told apart by name. The debug build keeps its build type in the name
+// because it is signed with a different key.
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            (output as? com.android.build.api.variant.impl.VariantOutputImpl)
+                ?.outputFileName
+                ?.set(
+                    variant.applicationId.map { id ->
+                        if (variant.buildType == "release") "$id.apk" else "$id-${variant.buildType}.apk"
+                    }
+                )
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

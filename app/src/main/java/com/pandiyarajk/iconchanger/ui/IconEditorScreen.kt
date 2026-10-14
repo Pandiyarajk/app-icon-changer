@@ -64,6 +64,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.saveable.Saver
+import kotlinx.serialization.json.Json
 import com.pandiyarajk.iconchanger.apps.AppInfo
 import com.pandiyarajk.iconchanger.data.HistoryEntry
 import com.pandiyarajk.iconchanger.icons.IconCatalog
@@ -80,6 +82,12 @@ import kotlinx.coroutines.launch
 private const val PREVIEW_PX = 288
 private const val MAX_ZOOM = 5f
 
+/** Saves an [IconSpec] as JSON, the same encoding history uses. */
+private val SpecSaver = Saver<IconSpec, String>(
+    save = { Json.encodeToString(IconSpec.serializer(), it) },
+    restore = { runCatching { Json.decodeFromString(IconSpec.serializer(), it) }.getOrNull() },
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IconEditorScreen(
@@ -95,7 +103,8 @@ fun IconEditorScreen(
     val scope = rememberCoroutineScope()
 
     var label by rememberSaveable { mutableStateOf(initial?.label ?: app.label) }
-    var spec by remember { mutableStateOf(initial?.spec ?: IconSpec()) }
+    // Saveable, so a rotation or a process death while the photo picker is open keeps the edit.
+    var spec by rememberSaveable(stateSaver = SpecSaver) { mutableStateOf(initial?.spec ?: IconSpec()) }
     var query by rememberSaveable { mutableStateOf("") }
     var category by remember { mutableStateOf<IconCategory?>(null) }
     var hex by rememberSaveable { mutableStateOf("") }
@@ -277,13 +286,16 @@ fun IconEditorScreen(
                             context, app.packageName, app.className, name, bitmap,
                             spec.adaptive && spec.source != IconSource.ORIGINAL,
                         )
-                        // The first label ever recorded is the app's own, kept for restore.
-                        onApplied(
-                            HistoryEntry(
-                                app.packageName, name, spec,
-                                originalLabel = initial?.originalLabel?.ifEmpty { null } ?: app.label,
-                            ),
-                        )
+                        // Nothing was pinned when the launcher refuses, so there is nothing to remember.
+                        if (outcome != ApplyOutcome.NOT_SUPPORTED) {
+                            // The first label ever recorded is the app's own, kept for restore.
+                            onApplied(
+                                HistoryEntry(
+                                    app.packageName, name, spec,
+                                    originalLabel = initial?.originalLabel?.ifEmpty { null } ?: app.label,
+                                ),
+                            )
+                        }
                         val message = when (outcome) {
                             ApplyOutcome.PIN_REQUESTED -> "Confirm adding the shortcut to your home screen"
                             ApplyOutcome.UPDATED -> "Shortcut updated"
@@ -344,7 +356,9 @@ private fun LibraryControls(spec: IconSpec, onSpec: (IconSpec) -> Unit, hex: Str
                             ),
                             CircleShape,
                         )
-                        .clickable { onSpec(spec.copy(background = colorLong)) },
+                        .clickable(onClickLabel = "Use colour #%06X".format(colorLong and 0xFFFFFFL)) {
+                            onSpec(spec.copy(background = colorLong))
+                        },
                 )
             }
         }

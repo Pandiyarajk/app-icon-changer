@@ -35,13 +35,13 @@ pinned home-screen shortcut** that opens the app with the icon and name you chos
 2. Choose where the icon comes from:
    - **Library**: pick an icon, a background colour (or type your own `RRGGBB`), white or
      black artwork, and a shape (circle, rounded, square). Search by name or filter by category.
-   - **My photo**: choose an image, then drag and pinch the preview to crop it.
+   - **My photo**: choose an image, then drag and pinch the preview to crop it. Camera photos\n     keep their orientation.
    - **Original**: the app's own icon, saved the first time you open it here.
 3. Edit the shortcut name if you like, then tap **Add to home screen** and confirm in your
    launcher.
 4. Change your mind later: open the app again. Your last choice is remembered, so you can
    adjust it, and re-applying **updates the same shortcut** rather than adding a second one.
-5. **Restore original** puts a pinned shortcut back to the app's own icon and name and clears
+5. If your launcher cannot pin shortcuts, nothing is saved, so the app is not marked as changed.\n6. **Restore original** puts a pinned shortcut back to the app's own icon and name and clears
    the saved customisation. The app's real icon in the app drawer was never changed.
 
 The **adaptive** switch hands shaping to the launcher, so the icon follows your theme's
@@ -77,7 +77,7 @@ keyPassword=...
 .\gradlew.bat :app:assembleRelease
 ```
 
-Without that file the release build is produced unsigned.
+The APK is written to pp/build/outputs/apk/release/com.pandiyarajk.iconchanger.apk, named\nafter the applicationId. Without keystore.properties the release build is produced unsigned.
 
 ## Project layout
 

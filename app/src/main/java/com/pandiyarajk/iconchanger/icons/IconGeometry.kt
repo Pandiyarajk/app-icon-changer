@@ -4,8 +4,6 @@
  */
 package com.pandiyarajk.iconchanger.icons
 
-import kotlin.math.abs
-
 /**
  * Pure icon maths, kept apart from drawing so it runs in a plain JVM test.
  *
@@ -37,5 +35,5 @@ object IconGeometry {
 
     /** True when the glyph box fits inside the adaptive safe zone, centred. */
     fun glyphFitsSafeZone(adaptive: Boolean): Boolean =
-        !adaptive || abs(glyphFraction(true)) <= ADAPTIVE_SAFE_FRACTION
+        !adaptive || glyphFraction(true) <= ADAPTIVE_SAFE_FRACTION
 }

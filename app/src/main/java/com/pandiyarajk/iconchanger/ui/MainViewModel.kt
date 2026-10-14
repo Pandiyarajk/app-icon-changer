@@ -7,6 +7,8 @@ package com.pandiyarajk.iconchanger.ui
 import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.core.graphics.drawable.toBitmap
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.InputStream
 
 /** Holds the app list and the history; manual DI, no Hilt. */
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -108,8 +111,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             var sample = 1
             while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= MAX_PHOTO_PX) sample *= 2
             val options = BitmapFactory.Options().apply { inSampleSize = sample }
-            val bitmap = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
+            val decoded = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
                 ?: return@withContext null
+            // Camera photos are stored sideways with an EXIF rotation; BitmapFactory ignores it.
+            val degrees = resolver.openInputStream(uri)?.use { exifRotation(it) } ?: 0
+            val bitmap = if (degrees == 0) decoded else {
+                val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
+                Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
+            }
             photoDir.mkdirs()
             deletePhotos(packageName)
             // A fresh name each time, so the editor's decode cache never serves a stale picture.
@@ -119,6 +128,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } catch (e: Exception) {
             null
         }
+    }
+
+    private fun exifRotation(stream: InputStream): Int = try {
+        when (ExifInterface(stream).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270
+            else -> 0
+        }
+    } catch (e: Exception) {
+        0
     }
 
     private fun deletePhotos(packageName: String) {
