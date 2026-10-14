@@ -19,6 +19,24 @@ pinned home-screen shortcut** that opens the app with the icon and name you chos
 - Some launchers add a small badge to shortcuts.
 - Your launcher must support pinned shortcuts. If it does not, the app says so.
 
+## Use case: a phone shared with kids
+
+Bright, familiar icons such as YouTube and Instagram pull young children in. On a phone the
+family shares, you can make those apps less eye-catching, or easier for a child to recognise:
+
+- **Tone them down:** give YouTube and Instagram a plain grey tile with a neutral glyph (a
+  briefcase, a lock) and a dull name such as "Work", so they stop standing out on the home
+  screen.
+- **Make kids' apps easy to find:** give a learning or drawing app a bright colour and a
+  friendly icon (a star, a palette, a book), and a name your child can read.
+- **Undo any time:** open the app again and tap **Restore original** to go back to the real
+  icon and name.
+
+Keep in mind that this changes how the apps **look**, not what can be opened. The real icons
+stay in the app drawer and in search, and an older child will find them. To actually block an
+app, set a time limit or require a parent's approval, use your phone's parental controls
+(Google Family Link, or Digital Wellbeing's app timers).
+
 ## Screenshots
 
 | App list | Editor | Icon collection |
