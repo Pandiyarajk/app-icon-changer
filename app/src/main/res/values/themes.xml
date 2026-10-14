@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Author: Pandiyaraj Karuppasamy
+  Date: Oct-14-2026
+-->
+<resources>
+    <style name="Theme.IconChanger" parent="android:Theme.Material.Light.NoActionBar" />
+    <color name="ic_launcher_background">#3949AB</color>
+</resources>
